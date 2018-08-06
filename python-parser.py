@@ -58,23 +58,35 @@ def socket_is_opened(url, tracker_file):
 
 def duplicate_removal(tracker_file):
     try:
-        with open(tracker_file, 'a') as f_read:
+        with open(tracker_file, 'r+') as file:
             tracker_list_old = []
-            for i in f_read.readlines():
+            for i in file.readlines():
                 if i != '\n' and i != '\r\n':
-                    ii = i.replace('\t', '').strip()
+                    ii = i.strip()
                     tracker_list_old.append(ii)
-    except IOError as e:
-        print(e)
-    try:
-        with open(tracker_file, 'w') as f_write:
+            file.seek(0, 0)
+            file.truncate()
             tracker_list_new = []
-            for j in tracker_list_new:
+            for j in tracker_list_old:
                 if j not in tracker_list_new:
                     tracker_list_new.append(j)
-                    f_write.writelines(j + '\n')
+                    file.writelines(j + '\n')
     except IOError as e:
         print(e)
+
+
+def torrent_parser(file_path_name, tracker_file):
+    tp = TorrentParser(file_path_name)
+    print(tp.get_announce_list())
+
+    file_write_thread_list = []
+    for i in range(len(tp.get_announce_list())):
+        file_write = threading.Thread(target=socket_is_opened,
+                                      args=(tp.get_announce_list()[i], tracker_file, ))
+        file_write_thread_list.append(file_write)
+        file_write.start()
+        for j in range(0, len(file_write_thread_list)):
+            file_write_thread_list[j].join()
 
 
 def main():
@@ -87,14 +99,13 @@ def main():
             print(file_list[i])
             torrent_file_list.append(path + '\\' + file_list[i])
 
-            tp = TorrentParser(file_path_name=path + '\\' + file_list[i])
-            print(tp.get_announce_list())
-
-            for j in range(len(tp.get_announce_list())):
-                file_write = threading.Thread(target=socket_is_opened,
-                                              args=(tp.get_announce_list()[j], tracker_file, ))
-                file_write.start()
-                file_write.join()
+    t_thread_list = []
+    for j in range(0, len(torrent_file_list)):
+        t = threading.Thread(target=torrent_parser, args=(torrent_file_list[j], tracker_file, ))
+        t_thread_list.append(t)
+        t.start()
+    for k in range(0, len(t_thread_list)):
+        t_thread_list[k].join()
 
     duplicate_removal(tracker_file)
 
