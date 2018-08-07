@@ -1,7 +1,7 @@
 torrent-parser
 =====
 
-##功能
+## 功能
 
 1. 获取 torrent 文件中 tracker 地址
 
@@ -9,7 +9,7 @@ torrent-parser
 
 3. tracker 地址去重
 
-##注意
+## 注意
 
 - 修改 main(), path = " "
 
