@@ -7,13 +7,11 @@ from bencode import bdecode
 
 
 class TorrentParser(object):
-    # 构造函数
     def __init__(self, file_path_name):
         self.file_path_name = file_path_name
         with open(file_path_name, 'rb') as fObj:
             self.fileDic = bdecode(fObj.read())
 
-    # 获得tracker服务器的URL列表
     def get_announce_list(self):
         retval = []
 
